@@ -35,16 +35,18 @@ window.addEventListener("DOMContentLoaded", function () {
 
   // Timer
 
-  let deadline = "2023-11-21";
+  let deadline = "2023-01-13";
 
   function getTimeRemaining(endtime) {
     let t = Date.parse(endtime) - Date.parse(new Date()),
       seconds = Math.floor((t / 1000) % 60),
       minutes = Math.floor((t / 1000 / 60) % 60),
-      hours = Math.floor(t / (1000 * 60 * 60));
+      hours = Math.floor((t / (1000 * 60 * 60)) % 24),
+      days = Math.floor(t / (1000 * 60 * 60 * 24));
 
     return {
       total: t,
+      days: days,
       hours: hours,
       minutes: minutes,
       seconds: seconds,
@@ -61,23 +63,28 @@ window.addEventListener("DOMContentLoaded", function () {
 
     function updateClock() {
       let t = getTimeRemaining(endtime);
+      days.textContent = t.days;
+      hours.textContent = t.hours;
+      minutes.textContent = t.minutes;
+      seconds.textContent = t.seconds;
+    }
 
-      function addZero(num) {
-        if (num <= 9) {
-          return "0" + num;
-        } else return num;
-      }
+    function addZero(num) {
+      if (num <= 9) {
+        return "0" + num;
+      } else return num;
+    }
+    days.textContent = addZero(t.days);
+    hours.textContent = addZero(t.hours);
+    minutes.textContent = addZero(t.minutes);
+    seconds.textContent = addZero(t.seconds);
 
-      hours.textContent = addZero(t.hours);
-      minutes.textContent = addZero(t.minutes);
-      seconds.textContent = addZero(t.seconds);
-
-      if (t.total <= 0) {
-        clearInterval(timeInterval);
-        hours.textContent = "00";
-        minutes.textContent = "00";
-        seconds.textContent = "00";
-      }
+    if (t.total <= 0) {
+      clearInterval(timeInterval);
+      days.textContent = "00";
+      hours.textContent = "00";
+      minutes.textContent = "00";
+      seconds.textContent = "00";
     }
   }
 
@@ -158,5 +165,3 @@ window.addEventListener("DOMContentLoaded", function () {
     }
   });
 });
-
-
