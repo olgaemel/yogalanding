@@ -35,14 +35,14 @@ window.addEventListener("DOMContentLoaded", function () {
 
   // Timer
 
-  let deadline = "2023-01-13";
+  let deadline = "2023-01-17";
 
   function getTimeRemaining(endtime) {
     let t = Date.parse(endtime) - Date.parse(new Date()),
       seconds = Math.floor((t / 1000) % 60),
       minutes = Math.floor((t / 1000 / 60) % 60),
       hours = Math.floor((t / (1000 * 60 * 60)) % 24),
-      days = Math.floor(t / (1000 * 60 * 60 * 24));
+      days = Math.floor(t / (1000 * 60 * 60) / 24);
 
     return {
       total: t,
@@ -63,28 +63,24 @@ window.addEventListener("DOMContentLoaded", function () {
 
     function updateClock() {
       let t = getTimeRemaining(endtime);
-      days.textContent = t.days;
-      hours.textContent = t.hours;
-      minutes.textContent = t.minutes;
-      seconds.textContent = t.seconds;
-    }
 
-    function addZero(num) {
-      if (num <= 9) {
-        return "0" + num;
-      } else return num;
-    }
-    days.textContent = addZero(t.days);
-    hours.textContent = addZero(t.hours);
-    minutes.textContent = addZero(t.minutes);
-    seconds.textContent = addZero(t.seconds);
+      function addZero(num) {
+        if (num <= 9) {
+          return "0" + num;
+        } else return num;
+      }
+      days.textContent = addZero(t.days);
+      hours.textContent = addZero(t.hours);
+      minutes.textContent = addZero(t.minutes);
+      seconds.textContent = addZero(t.seconds);
 
-    if (t.total <= 0) {
-      clearInterval(timeInterval);
-      days.textContent = "00";
-      hours.textContent = "00";
-      minutes.textContent = "00";
-      seconds.textContent = "00";
+      if (t.total <= 0) {
+        clearInterval(timeInterval);
+        days.textContent = "00";
+        hours.textContent = "00";
+        minutes.textContent = "00";
+        seconds.textContent = "00";
+      }
     }
   }
 
@@ -126,42 +122,60 @@ window.addEventListener("DOMContentLoaded", function () {
     failure: "Что-то пошло не так...",
   };
 
-  let form = document.querySelector(".main-form"),
+  let form = document.getElementsByClassName("main-form")[1],
+    formBottom = document.getElementById("form"),
     input = form.getElementsByTagName("input"),
     statusMessage = document.createElement("div");
-
   statusMessage.classList.add("status");
 
-  form.addEventListener("submit", function (event) {
-    event.preventDefault();
-    form.appendChild(statusMessage);
+  function sendForm(elem) {
+    elem.addEventListener("submit", function (e) {
+      e.preventDefault();
+      elem.appendChild(statusMessage);
+      let formData = new FormData(elem);
 
-    let request = new XMLHttpRequest();
-    request.open("POST", "/server.php");
-    request.setRequestHeader("Content-type", "application/json; charset=utf-8");
+      function postData(data) {
+        return new Promise(function (resolve, reject) {
+          let request = new XMLHttpRequest();
+          request.open("POST", "/server.php");
 
-    let formData = new FormData(form);
+          request.setRequestHeader(
+            "Content-type",
+            "application/x-www-form-urlencoded"
+          );
 
-    let obj = {};
-    formData.forEach(function (value, key) {
-      obj[key] = value;
-    });
-    let json = JSON.stringify(obj);
+          request.onreadystatechange = function () {
+            if (request.readyState < 4) {
+              resolve();
+            } else if (request.readyState === 4 && request.status == 200) {
+              resolve();
+            } else {
+              reject();
+            }
+          };
 
-    request.send(json);
-
-    request.addEventListener("readystatechange", function () {
-      if (request.readyState < 4) {
-        statusMessage.innerHTML = message.loading;
-      } else if (request.readyState === 4 && request.status == 200) {
-        statusMessage.innerHTML = message.success;
-      } else {
-        statusMessage.innerHTML = message.failure;
+          request.send(data);
+        });
       }
     });
 
-    for (let i = 0; i < input.length; i++) {
-      input[i].value = "";
+    function clearInput() {
+      for (i = 0; i < input.length; i++) {
+        input[i].value = "";
+      }
     }
-  });
+
+    postData(formData)
+      .then(() => statusMessage, (innerHTML = message.failure))
+      .then(() => {
+        thanksModal.style.display = "block";
+        mainMobile.style.display = "none";
+        statusMessage.innerHTML = "";
+      })
+      .catch(() => (statusMessage.innerHTML = message.failure))
+      .then(clearInput);
+  }
+
+  sendForm(form);
+  sendForm(formBottom);
 });
