@@ -432,7 +432,6 @@ window.addEventListener("DOMContentLoaded", function () {
     }
   });
 
-
   // Slider
 
   let slideIndex = 1,
@@ -530,4 +529,7 @@ window.addEventListener("DOMContentLoaded", function () {
       totalValue.innerHTML = a * this.options[this.selectedIndex].value;
     }
   });
+  localStorage.setItem("first", 5);
+  let x = localStorage.getItem("first");
+  console.log(x);
 });
